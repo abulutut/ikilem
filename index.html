@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>İkilem</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-soft: #faf3f3;
+      --kirmizi: #d62828;
+      --kirmizi-koyu: #9d0208;
+      --kirmizi-soft: #fde2e2;
+      --metin: #1a1a1a;
+      --metin-soft: #6c6c6c;
+      --cizgi: #e8d5d5;
+      --cizgi-koyu: #d4a8a8;
+      --yesil: #2a9d3f;
+      --yesil-soft: #d4f0d4;
+      --klavye-bg: #f0e6e6;
+      --klavye-key: #ffffff;
+      --gri-soft: #ececec;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--metin);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .uygulama {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 12px 24px;
+    }
+
+    /* --- Header --- */
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 8px 4px;
+      border-bottom: 1px solid var(--cizgi);
+    }
+
+    .header-sol, .header-sag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--metin);
+    }
+
+    .header-sag { justify-content: flex-end; }
+
+    .header-ikon {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--metin-soft);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.18em;
+      font-weight: 800;
+      color: var(--metin);
+    }
+
+    .daily {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      line-height: 1.05;
+      font-size: 0.65rem;
+      color: var(--metin-soft);
+      letter-spacing: 0.1em;
+    }
+    .daily b { color: var(--metin); font-size: 0.85rem; letter-spacing: 0.05em; }
+
+    /* --- Skor barı --- */
+    .skor-bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 4px 14px;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      color: var(--metin-soft);
+    }
+
+    .skor-etiket {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .skor-etiket b { color: var(--metin); font-size: 0.85rem; letter-spacing: 0.05em; margin-top: 1px; }
+    .skor-etiket.sag { align-items: flex-end; }
+
+    .noktalar {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .nokta {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gri-soft);
+      border: 1px solid var(--gri-soft);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .nokta.aktif { background: var(--kirmizi); border-color: var(--kirmizi); }
+    .nokta.gecmis { background: transparent; border-color: var(--kirmizi); }
+
+    /* --- Oyun alanı --- */
+    .oyun {
+      position: relative;
+      margin: 18px 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .satir {
+      display: grid;
+      grid-template-columns: 56px repeat(5, 1fr);
+      gap: 6px;
+      align-items: center;
+    }
+
+    .rozet {
+      width: 48px;
+      height: 48px;
+      background: var(--kirmizi);
+      color: #fff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      position: relative;
+    }
+
+    .bracket-cell {
+      width: 48px;
+      height: 48px;
+      position: relative;
+    }
+    .bracket-cell::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -8px;
+      bottom: -8px;
+      width: 4px;
+      transform: translateX(-50%);
+      background: var(--kirmizi);
+    }
+
+    .harf-kutu {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.6rem;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      border-radius: 6px;
+      user-select: none;
+    }
+
+    .harf-kutu.sinir {
+      background: var(--kirmizi);
+      color: #fff;
+    }
+    .harf-kutu.sinir.bos {
+      background: var(--kirmizi-soft);
+      color: var(--kirmizi);
+    }
+    .harf-kutu.aktif {
+      background: #fff;
+      color: var(--metin);
+      border: 2px solid var(--cizgi-koyu);
+    }
+    .harf-kutu.aktif.dolu {
+      border-color: var(--kirmizi);
+    }
+
+    .mesafe-etiket {
+      position: absolute;
+      right: 4px;
+      font-size: 0.65rem;
+      color: var(--kirmizi-koyu);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #fff;
+      padding: 1px 5px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .mesafe-etiket.ust { top: 52px; }
+    .mesafe-etiket.alt { bottom: 52px; }
+    .mesafe-etiket:empty { display: none; }
+
+    /* --- Mesaj & paylaş --- */
+    #mesaj {
+      min-height: 1.4rem;
+      font-size: 0.9rem;
+      text-align: center;
+      margin: 6px 0 4px;
+    }
+    #mesaj.hata   { color: var(--kirmizi-koyu); }
+    #mesaj.uyari  { color: #b45309; }
+    #mesaj.basari { color: var(--yesil); font-weight: 700; }
+    #mesaj.bilgi  { color: var(--metin); }
+
+    #btn-paylas {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0 12px;
+      background: var(--kirmizi);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    #btn-paylas:hover { background: var(--kirmizi-koyu); }
+
+    /* --- Alfabe paneli --- */
+    .alfabe {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 6px;
+      margin: 6px 0;
+      background: var(--bg-soft);
+      border-radius: 8px;
+    }
+    .alfabe-satir {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+    .alfabe-harf {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #efe1e1;
+      color: var(--metin-soft);
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+    }
+    .alfabe-harf.pasif { opacity: 0.3; }
+
+    /* --- İpucu satırı --- */
+    .ipucu-satir {
+      display: flex;
+      justify-content: center;
+      margin: 6px 0;
+    }
+    #btn-ipucu {
+      padding: 8px 16px;
+      background: var(--kirmizi-soft);
+      color: var(--kirmizi-koyu);
+      border: 1px solid var(--cizgi-koyu);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #btn-ipucu:hover { background: #fbd0d0; }
+    #btn-ipucu:disabled { opacity: 0.4; cursor: default; }
+
+    /* --- Sanal klavye --- */
+    .klavye {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 8px 4px;
+      margin: 4px 0;
+    }
+    .klavye-satir {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+    .tus {
+      flex: 1;
+      min-width: 0;
+      height: 44px;
+      max-width: 38px;
+      background: var(--klavye-key);
+      border: 1px solid var(--cizgi);
+      border-radius: 5px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--metin);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      user-select: none;
+      transition: background 0.1s;
+    }
+    .tus:hover { background: var(--bg-soft); }
+    .tus:active { background: var(--kirmizi-soft); }
+    .tus.genis { max-width: 70px; flex: 1.5; font-size: 0.7rem; letter-spacing: 0.1em; }
+
+    /* Gizli gerçek input — fiziksel klavye için */
+    #girdi {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+
+    /* --- Geçmiş --- */
+    .gecmis {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 12px;
+    }
+    .gecmis-satir {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid var(--cizgi);
+      border-radius: 6px;
+      padding: 7px 11px;
+      font-size: 0.85rem;
+    }
+    .gecmis-satir.ipucu-satir {
+      background: var(--bg-soft);
+      border-color: var(--cizgi-koyu);
+    }
+    .gecmis-no {
+      color: var(--metin-soft);
+      font-size: 0.7rem;
+      width: 18px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .gecmis-kelime {
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      flex: 1;
+      text-transform: uppercase;
+    }
+    .gecmis-etiket {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .gecmis-etiket.alt   { background: var(--kirmizi-soft); color: var(--kirmizi-koyu); }
+    .gecmis-etiket.ust   { background: var(--kirmizi); color: #fff; }
+    .gecmis-etiket.dogru { background: var(--yesil-soft); color: var(--yesil); }
+    .gecmis-etiket.ipucu { background: #fff; color: var(--kirmizi-koyu); border: 1px solid var(--kirmizi); }
+  </style>
+</head>
+<body>
+  <div class="uygulama">
+
+    <header>
+      <div class="header-sol">
+        <span class="header-ikon" aria-hidden="true">⌂</span>
+      </div>
+      <h1>İKİLEM</h1>
+      <div class="header-sag">
+        <div class="daily">
+          <span>DAILY</span>
+          <b id="daily-no">—</b>
+        </div>
+        <span class="header-ikon" aria-hidden="true">📊</span>
+      </div>
+    </header>
+
+    <div class="skor-bar">
+      <div class="skor-etiket">
+        <span>TAHMİN</span>
+        <b><span id="sayac">0</span> / 14</b>
+      </div>
+      <div class="noktalar" id="noktalar"></div>
+      <div class="skor-etiket sag">
+        <span>KALAN</span>
+        <b id="kalan">14</b>
+      </div>
+    </div>
+
+    <div class="oyun">
+      <div class="satir" id="satir-ust">
+        <div class="rozet">?<span class="mesafe-etiket ust" id="ust-mesafe"></span></div>
+        <div class="harf-kutu sinir bos" data-i="0">A</div>
+        <div class="harf-kutu sinir bos" data-i="1">A</div>
+        <div class="harf-kutu sinir bos" data-i="2">A</div>
+        <div class="harf-kutu sinir bos" data-i="3">A</div>
+        <div class="harf-kutu sinir bos" data-i="4">A</div>
+      </div>
+
+      <div class="satir" id="satir-aktif">
+        <div class="bracket-cell"></div>
+        <div class="harf-kutu aktif" data-i="0"></div>
+        <div class="harf-kutu aktif" data-i="1"></div>
+        <div class="harf-kutu aktif" data-i="2"></div>
+        <div class="harf-kutu aktif" data-i="3"></div>
+        <div class="harf-kutu aktif" data-i="4"></div>
+      </div>
+
+      <div class="satir" id="satir-alt">
+        <div class="rozet">?<span class="mesafe-etiket alt" id="alt-mesafe"></span></div>
+        <div class="harf-kutu sinir bos" data-i="0">Z</div>
+        <div class="harf-kutu sinir bos" data-i="1">Z</div>
+        <div class="harf-kutu sinir bos" data-i="2">Z</div>
+        <div class="harf-kutu sinir bos" data-i="3">Z</div>
+        <div class="harf-kutu sinir bos" data-i="4">Z</div>
+      </div>
+    </div>
+
+    <p id="mesaj"></p>
+
+    <button id="btn-paylas">📋 Özeti Kopyala</button>
+
+    <div class="alfabe" id="alfabe"></div>
+
+    <div class="ipucu-satir">
+      <button id="btn-ipucu">💡 İpucu</button>
+    </div>
+
+    <div class="klavye" id="klavye"></div>
+
+    <input id="girdi" type="text" maxlength="5" autocomplete="off" autocorrect="off"
+           autocapitalize="off" spellcheck="false" inputmode="none" readonly>
+
+    <div class="gecmis" id="gecmis"></div>
+
+  </div>
+
+  <script src="game-logic.js"></script>
+  <script>
+    const MAX_TAHMIN = 14;
+    const KELIME_UZUNLUK = 5;
+    const TR_ABC = "abcçdefgğhıijklmnoöprsştuüvyz";
+
+    const KLAVYE_DUZENI = [
+      ["q","w","e","r","t","y","u","ı","o","p","ğ","ü"],
+      ["a","s","d","f","g","h","j","k","l","ş","i"],
+      ["enter","z","x","c","v","b","n","m","ö","ç","sil"]
+    ];
+
+    let altSinirIdx;
+    let ustSinirIdx;
+    let cevapIdx;
+    let tahminSayisi = 0;
+    let oyunBitti = false;
+    let oyunKazanildi = false;
+    let aktifTahmin = "";
+
+    const gecmisKayit = [];
+
+    const girdiEl   = document.getElementById("girdi");
+    const btnIpucu  = document.getElementById("btn-ipucu");
+    const btnPaylas = document.getElementById("btn-paylas");
+    const mesajEl   = document.getElementById("mesaj");
+    const sayacEl   = document.getElementById("sayac");
+    const kalanEl   = document.getElementById("kalan");
+    const dailyEl   = document.getElementById("daily-no");
+    const gecmisEl  = document.getElementById("gecmis");
+    const noktalarEl = document.getElementById("noktalar");
+    const klavyeEl  = document.getElementById("klavye");
+    const alfabeEl  = document.getElementById("alfabe");
+
+    const ustSinirKutulari = document.querySelectorAll("#satir-ust .harf-kutu");
+    const altSinirKutulari = document.querySelectorAll("#satir-alt .harf-kutu");
+    const aktifKutular     = document.querySelectorAll("#satir-aktif .harf-kutu");
+    const ustMesafeEl = document.getElementById("ust-mesafe");
+    const altMesafeEl = document.getElementById("alt-mesafe");
+
+    function siniriGoster() {
+      const altGercek = altSinirIdx !== -1;
+      const ustGercek = ustSinirIdx !== Ikilem.sozlukBoyutu();
+      const aralik = ustSinirIdx - altSinirIdx;
+
+      if (altGercek) {
+        const k = Ikilem.kelimeAt(altSinirIdx);
+        kelimeyiKutuyaYaz(altSinirKutulari, k, false);
+        altMesafeEl.textContent = ustGercek
+          ? "%" + Math.round((cevapIdx - altSinirIdx) / aralik * 100)
+          : "";
+      } else {
+        kelimeyiKutuyaYaz(altSinirKutulari, "zzzzz", true);
+        altMesafeEl.textContent = "";
+      }
+
+      if (ustGercek) {
+        const k = Ikilem.kelimeAt(ustSinirIdx);
+        kelimeyiKutuyaYaz(ustSinirKutulari, k, false);
+        ustMesafeEl.textContent = altGercek
+          ? "%" + Math.round((ustSinirIdx - cevapIdx) / aralik * 100)
+          : "";
+      } else {
+        kelimeyiKutuyaYaz(ustSinirKutulari, "aaaaa", true);
+        ustMesafeEl.textContent = "";
+      }
+    }
+
+    function kelimeyiKutuyaYaz(kutular, kelime, bos) {
+      const harfler = [...kelime];
+      kutular.forEach((kutu, i) => {
+        kutu.textContent = (harfler[i] || "").toLocaleUpperCase("tr");
+        kutu.classList.toggle("bos", bos);
+      });
+    }
+
+    function aktifTahminGoster() {
+      const harfler = [...aktifTahmin];
+      aktifKutular.forEach((kutu, i) => {
+        const harf = harfler[i];
+        if (harf) {
+          kutu.textContent = harf.toLocaleUpperCase("tr");
+          kutu.classList.add("dolu");
+        } else {
+          kutu.textContent = "";
+          kutu.classList.remove("dolu");
+        }
+      });
+      girdiEl.value = aktifTahmin;
+    }
+
+    function noktalariGuncelle() {
+      [...noktalarEl.children].forEach((nokta, i) => {
+        nokta.classList.remove("aktif", "gecmis");
+        if (i < tahminSayisi) nokta.classList.add("gecmis");
+        else if (i === tahminSayisi && !oyunBitti) nokta.classList.add("aktif");
+      });
+    }
+
+    function noktalariOlustur() {
+      noktalarEl.innerHTML = "";
+      for (let i = 0; i < MAX_TAHMIN; i++) {
+        const n = document.createElement("div");
+        n.className = "nokta";
+        noktalarEl.appendChild(n);
+      }
+    }
+
+    function alfabeyiOlustur() {
+      const harfler = [...TR_ABC];
+      const yarim = Math.ceil(harfler.length / 2);
+      const satir1 = harfler.slice(0, yarim);
+      const satir2 = harfler.slice(yarim);
+      alfabeEl.innerHTML = "";
+      [satir1, satir2].forEach(grup => {
+        const satir = document.createElement("div");
+        satir.className = "alfabe-satir";
+        grup.forEach(h => {
+          const el = document.createElement("div");
+          el.className = "alfabe-harf";
+          el.textContent = h;
+          el.dataset.harf = h;
+          satir.appendChild(el);
+        });
+        alfabeEl.appendChild(satir);
+      });
+    }
+
+    function klavyeyiOlustur() {
+      klavyeEl.innerHTML = "";
+      KLAVYE_DUZENI.forEach(satir => {
+        const satirEl = document.createElement("div");
+        satirEl.className = "klavye-satir";
+        satir.forEach(tus => {
+          const tusEl = document.createElement("button");
+          tusEl.className = "tus";
+          tusEl.type = "button";
+          if (tus === "enter") {
+            tusEl.classList.add("genis");
+            tusEl.textContent = "ENTER";
+            tusEl.addEventListener("click", tahminYap);
+          } else if (tus === "sil") {
+            tusEl.classList.add("genis");
+            tusEl.textContent = "⌫";
+            tusEl.addEventListener("click", silHarf);
+          } else {
+            tusEl.textContent = tus;
+            tusEl.addEventListener("click", () => yazHarf(tus));
+          }
+          satirEl.appendChild(tusEl);
+        });
+        klavyeEl.appendChild(satirEl);
+      });
+    }
+
+    function yazHarf(harf) {
+      if (oyunBitti) return;
+      if (aktifTahmin.length >= KELIME_UZUNLUK) return;
+      aktifTahmin += Ikilem.trKucult(harf);
+      aktifTahminGoster();
+    }
+
+    function silHarf() {
+      if (oyunBitti) return;
+      if (aktifTahmin.length === 0) return;
+      aktifTahmin = aktifTahmin.slice(0, -1);
+      aktifTahminGoster();
+    }
+
+    function mesajGoster(metin, tip) {
+      mesajEl.textContent = metin;
+      mesajEl.className = tip;
+    }
+
+    function gecmisEkle(kelime, karar, isIpucu) {
+      gecmisKayit.push({ kelime, karar, ipucu: isIpucu });
+
+      const no = tahminSayisi;
+      const satir = document.createElement("div");
+      satir.className = "gecmis-satir" + (isIpucu ? " ipucu-satir" : "");
+
+      const etiketSinif = isIpucu ? "ipucu" : karar;
+      const etiketMetin = karar === "dogru" ? "✓ doğru"
+                        : karar === "alt"   ? "↑ alt sınır"
+                        :                    "↓ üst sınır";
+      const ipucuOneki  = isIpucu ? '<span class="gecmis-etiket ipucu">💡 ipucu</span> ' : "";
+
+      satir.innerHTML = `
+        <span class="gecmis-no">${no}.</span>
+        <span class="gecmis-kelime">${kelime}</span>
+        ${ipucuOneki}<span class="gecmis-etiket ${etiketSinif}">${etiketMetin}</span>
+      `;
+      gecmisEl.prepend(satir);
+    }
+
+    function oyunuBitir(kazanildi) {
+      oyunBitti = true;
+      oyunKazanildi = kazanildi;
+      btnIpucu.disabled = true;
+      btnPaylas.style.display = "block";
+      noktalariGuncelle();
+    }
+
+    function tahminIsle(kelime, isIpucu) {
+      const idx = Ikilem.sozlukIndeksi(kelime);
+
+      tahminSayisi++;
+      sayacEl.textContent = tahminSayisi;
+      kalanEl.textContent = MAX_TAHMIN - tahminSayisi;
+
+      const karar = Ikilem.sinirKarari(idx, cevapIdx);
+      gecmisEkle(kelime, karar, isIpucu);
+
+      if (karar === "dogru") {
+        oyunuBitir(true);
+        mesajGoster(`✅ Doğru! ${tahminSayisi}. tahminde buldun.`, "basari");
+        return;
+      }
+
+      if (karar === "alt") altSinirIdx = idx;
+      else ustSinirIdx = idx;
+
+      siniriGoster();
+      noktalariGuncelle();
+
+      if (tahminSayisi >= MAX_TAHMIN) {
+        oyunuBitir(false);
+        mesajGoster(`Oyun bitti. Cevap: ${Ikilem.kelimeAt(cevapIdx)}`, "bilgi");
+        return;
+      }
+
+      mesajGoster("", "");
+    }
+
+    function tahminYap() {
+      if (oyunBitti) return;
+
+      const girdi = Ikilem.trKucult(aktifTahmin.trim());
+      if (!girdi) return;
+
+      if (girdi.length !== KELIME_UZUNLUK) {
+        mesajGoster("⚠️ Kelime 5 harf olmalı.", "uyari");
+        return;
+      }
+
+      if (!Ikilem.sozlukteMi(girdi)) {
+        mesajGoster("❌ Bu kelime sözlükte yok.", "hata");
+        return;
+      }
+
+      const idx = Ikilem.sozlukIndeksi(girdi);
+      if (!Ikilem.aralikta(idx, altSinirIdx, ustSinirIdx)) {
+        mesajGoster("⚠️ Bu kelime mevcut aralığın dışında.", "uyari");
+        return;
+      }
+
+      aktifTahmin = "";
+      aktifTahminGoster();
+      tahminIsle(girdi, false);
+    }
+
+    function ipucuKullan() {
+      if (oyunBitti) return;
+
+      const idx = Ikilem.rastgeleIpucu(altSinirIdx, ustSinirIdx);
+      if (idx === null) {
+        mesajGoster("Aralıkta kelime kalmadı.", "bilgi");
+        return;
+      }
+
+      const kelime = Ikilem.kelimeAt(idx);
+      tahminIsle(kelime, true);
+    }
+
+    function paylasOzet() {
+      const gun = Ikilem.gunIndeksi();
+      const sonucSimge = oyunKazanildi ? "✅" : "❌";
+
+      const emojiler = gecmisKayit.map(h => {
+        if (h.ipucu && h.karar === "alt")   return "💡⬆️";
+        if (h.ipucu && h.karar === "ust")   return "💡⬇️";
+        if (h.ipucu && h.karar === "dogru") return "💡✅";
+        if (h.karar === "alt")              return "⬆️";
+        if (h.karar === "ust")              return "⬇️";
+        if (h.karar === "dogru")            return "✅";
+      }).join("");
+
+      const metin = `İkilem #${gun} ${sonucSimge} ${tahminSayisi}/14\n${emojiler}`;
+
+      navigator.clipboard.writeText(metin).then(() => {
+        btnPaylas.textContent = "✓ Kopyalandı!";
+        setTimeout(() => { btnPaylas.textContent = "📋 Özeti Kopyala"; }, 2000);
+      }).catch(() => {
+        prompt("Kopyalayıp paylaş:", metin);
+      });
+    }
+
+    btnIpucu.addEventListener("click", ipucuKullan);
+    btnPaylas.addEventListener("click", paylasOzet);
+
+    document.addEventListener("keydown", e => {
+      if (oyunBitti) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === "Enter") { e.preventDefault(); tahminYap(); return; }
+      if (e.key === "Backspace") { e.preventDefault(); silHarf(); return; }
+      if (e.key.length === 1) {
+        const kucuk = Ikilem.trKucult(e.key);
+        if (TR_ABC.includes(kucuk)) {
+          e.preventDefault();
+          yazHarf(kucuk);
+        }
+      }
+    });
+
+    async function baslat() {
+      noktalariOlustur();
+      alfabeyiOlustur();
+      klavyeyiOlustur();
+      await Ikilem.yukle(".");
+      altSinirIdx = -1;
+      ustSinirIdx = Ikilem.sozlukBoyutu();
+      cevapIdx    = Ikilem.gunCevapIndeksi();
+      dailyEl.textContent = Ikilem.gunIndeksi();
+      siniriGoster();
+      noktalariGuncelle();
+      aktifTahminGoster();
+    }
+
+    baslat().catch(e => {
+      mesajGoster("Kelime listesi yüklenemedi: " + e.message, "hata");
+    });
+  </script>
+</body>
+</html>
