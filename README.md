@@ -1,7 +1,5 @@
 # İkilem
 
-Türkçe 5 harfli kelime tahmin oyunu — alfabetik sözlükte aralık daraltma mekaniği, 14 hak.
+Türkçe 5 harfli sözlükte aralık daraltma mekaniği ile günlük kelime tahmin oyunu.
 
-Oyna: https://abulutut.github.io/ikilem/
-
-Kaynak yapı kişisel bir wiki içinde geliştiriliyor; bu repo sadece deploy edilmiş statik versiyon.
+https://abulutut.github.io/ikilem/
