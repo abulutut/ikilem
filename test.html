@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head><meta charset="UTF-8"><title>İkilem — logic test</title></head>
+<body>
+<p>Console'u aç (F12) ve testleri çalıştır:</p>
+<pre id="out"></pre>
+<script src="game-logic.js"></script>
+<script>
+async function testEt() {
+  const out = document.getElementById("out");
+  const log = (...args) => {
+    console.log(...args);
+    out.textContent += args.join(" ") + "\n";
+  };
+
+  await Ikilem.yukle(".");
+
+  log("--- Bugün ---");
+  log("bugunTR():", Ikilem.bugunTR());
+  log("gunIndeksi():", Ikilem.gunIndeksi());
+  log("gunKelimesi():", Ikilem.gunKelimesi());
+
+  log("\n--- sozlukteMi ---");
+  log('sozlukteMi("elmas"):', Ikilem.sozlukteMi("elmas"));   // true
+  log('sozlukteMi("ELMAS"):', Ikilem.sozlukteMi("ELMAS"));   // true (büyük harf)
+  log('sozlukteMi("xyzqw"):', Ikilem.sozlukteMi("xyzqw"));   // false
+
+  log("\n--- sozlukIndeksi ---");
+  log('sozlukIndeksi("abide"):', Ikilem.sozlukIndeksi("abide")); // 0
+  log('sozlukIndeksi("zümre"):', Ikilem.sozlukIndeksi("zümre")); // 738
+  log('sozlukIndeksi("xyzqw"):', Ikilem.sozlukIndeksi("xyzqw")); // undefined
+
+  log("\n--- aralikta (indeks tabanlı) ---");
+  // badem=2, elmas=95, kalem=228 (yaklaşık — listeye göre değişir)
+  const bademIdx = Ikilem.sozlukIndeksi("badem");
+  const elmasIdx = Ikilem.sozlukIndeksi("elmas");
+  const kalemIdx = Ikilem.sozlukIndeksi("kalem");
+  log(`badem[${bademIdx}] elmas[${elmasIdx}] kalem[${kalemIdx}]`);
+  log('aralikta(elmas, badem, kalem):', Ikilem.aralikta(elmasIdx, bademIdx, kalemIdx)); // true
+  log('aralikta(badem, badem, kalem):', Ikilem.aralikta(bademIdx, bademIdx, kalemIdx)); // false (eşit=dışarda)
+  log('aralikta(kalem, badem, kalem):', Ikilem.aralikta(kalemIdx, bademIdx, kalemIdx)); // false
+
+  log("\n--- sinirKarari ---");
+  log('sinirKarari(elmasIdx, elmasIdx):', Ikilem.sinirKarari(elmasIdx, elmasIdx)); // "dogru"
+  log('sinirKarari(bademIdx, elmasIdx):', Ikilem.sinirKarari(bademIdx, elmasIdx)); // "alt"
+  log('sinirKarari(kalemIdx, elmasIdx):', Ikilem.sinirKarari(kalemIdx, elmasIdx)); // "ust"
+
+  log("\n--- Tekrar yok: 5 ardışık gün ---");
+  const gunler = {};
+  for (let i = 0; i < 5; i++) {
+    const d = new Date("2025-01-01T00:00:00Z");
+    d.setDate(d.getDate() + i);
+    const tarih = d.toISOString().slice(0, 10);
+    const kelime = Ikilem.gunKelimesi(tarih);
+    gunler[tarih] = kelime;
+    log(` ${tarih}: ${kelime}`);
+  }
+  const benzersiz = new Set(Object.values(gunler)).size === 5;
+  log("5 gün benzersiz mi?", benzersiz);
+}
+
+testEt().catch(e => console.error("Yükleme hatası:", e));
+</script>
+</body>
+</html>
